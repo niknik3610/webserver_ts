@@ -13,8 +13,13 @@ export const serve_404_error = async (res: http.ServerResponse) => {
 
 export const serve_file = async (file_path: string, res: http.ServerResponse) => {
     let header: string;
-    header = await read_file(file_path);
-    res.statusCode = 200;
-    res.setHeader('Content-Type', 'html');
-    res.end(header);
+    try {
+        header = await read_file(file_path);
+        res.statusCode = 200;
+        res.setHeader('Content-Type', 'html');
+        res.end(header);
+    }
+    catch {
+        throw `File Not Found: ${file_path}`;
+    }
 }

@@ -4,7 +4,8 @@ import * as response_handler from "./response_handler";
 
 const OUT_PORT: number = 8000;
 const HOST_NAME = '127.0.0.1';
-const HEADER_PATH = "web_files/header.html";
+const FILE_PATH = "web_files/";
+const HEADER_PATH = FILE_PATH + "header.html";
 
 export async function read_file(path: string) {
     try {
@@ -19,12 +20,22 @@ export async function read_file(path: string) {
 async function main() {
     const server = http.createServer(async (req, res) => {
         console.log("Received Request");
-        try {
-            response_handler.serve_file(HEADER_PATH, res);
+        let req_url = req.url;
+        let path: string;
+
+        if (req_url !== '/') {
+            path = FILE_PATH + req_url + '.html';
         }
-        catch (e) {
+        else {
+            path = HEADER_PATH
+        }
+
+        response_handler.serve_file(path, res)
+        .catch((e) => {
             response_handler.serve_404_error(res);
-        }
+            console.log(e);
+        });
+        
     });    
 
     server.listen(OUT_PORT, HOST_NAME, () => {
