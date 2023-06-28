@@ -1,20 +1,12 @@
-import {Server} from "socket.io";
 import * as http from "http" ;
 import {promises as fs} from 'fs';
+import * as response_handler from "./response_handler";
 
 const OUT_PORT: number = 8000;
 const HOST_NAME = '127.0.0.1';
-const HEADER_PATH = "web_files/header.htm";
-const ERROR_PATH = "web_files/404.html";
+const HEADER_PATH = "web_files/header.html";
 
-function init_io(port_num: number): Server { 
-    return new Server(
-        port_num,
-        {}
-    );
-}
-
-async function read_file(path: string) {
+export async function read_file(path: string) {
     try {
         const file_contents = await fs.readFile(path);
         return file_contents.toString();
@@ -24,32 +16,19 @@ async function read_file(path: string) {
     }
 }
 
-
 async function main() {
     const server = http.createServer(async (req, res) => {
+        console.log("Received Request");
         try {
-            let header: string;
-            header = await read_file(HEADER_PATH);
-            res.statusCode = 200;
-            res.setHeader('Content-Type', 'html');
-            res.end(header);
+            response_handler.serve_file(HEADER_PATH, res);
         }
         catch (e) {
-            let e_header: string;
-            e_header = await read_file(ERROR_PATH); 
-            res.statusCode = 404;
-            res.setHeader('Content-Type', 'html');
-            res.end(e_header);
+            response_handler.serve_404_error(res);
         }
     });    
 
-    const io = init_io(OUT_PORT);
-    io.on("connection", (socket) => {
-        console.log(socket);
-    }) 
-
     server.listen(OUT_PORT, HOST_NAME, () => {
-        console.log(`Server Running at http://${HOST_NAME}:${OUT_PORT}/`);
+        console.log(`Server Running on http://${HOST_NAME}:${OUT_PORT}/`);
     });
 }
 
